@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import PolygonIcon from "@/public/icons/polygon-icon";
-import { Dropdown } from "@/components/ui/dropdown/Dropdown";
-import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
+import { Dropdown, DropdownItem } from "@/components/ui/dropdown";
 
 export const UserDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
