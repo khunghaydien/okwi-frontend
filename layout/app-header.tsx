@@ -73,7 +73,7 @@ export const UserDropdown = () => {
 }
 const AppHeader: React.FC = () => {
     return (
-        <header className="h-16 flex items-center justify-end px-6">
+        <header className="h-16 flex items-center justify-end px-6 border-b border-gray-200 border-b-[1px]">
             <UserDropdown />
         </header>
     );

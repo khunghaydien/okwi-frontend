@@ -3,18 +3,11 @@ import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import PolygonIcon from "@/public/icons/polygon-icon";
 import clsx from "clsx";
-function SingleSelect({
+function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
-
-function SelectGroup({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Group>) {
-  return <SelectPrimitive.Group data-slot="select-group" {...props} />;
-}
-
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
@@ -37,8 +30,8 @@ function SelectTrigger({
         data-slot="select-trigger"
         data-size={size}
         className={clsx(
+          "text-[16px] text-[#1A1C1E] border border-[#D9D9D9] rounded-lg px-3 h-10 outline-none text-left",
           className,
-          "text-[16px] text-[#1A1C1E] w-full border border-[#D9D9D9] rounded-lg px-3 h-[50px] outline-none text-left",
           error && "border-[#E74247]"
         )}
         {...props}
@@ -69,7 +62,12 @@ function SelectContent({
         {...props}
       >
         <SelectScrollUpButton />
-        <SelectPrimitive.Viewport className="bg-white shadow-lg rounded-lg p-2 data-[side=bottom]:animate-slide-up data-[side=top]:animate-slide-down data-[side=left]:animate-slide-left data-[side=right]:animate-slide-right">
+        <SelectPrimitive.Viewport
+          className={clsx(
+            className,
+            "bg-white shadow-lg rounded-lg p-2 data-[side=bottom]:animate-slide-up data-[side=top]:animate-slide-down data-[side=left]:animate-slide-left data-[side=right]:animate-slide-right"
+          )}
+        >
           {children}
         </SelectPrimitive.Viewport>
         <SelectScrollDownButton />
@@ -91,22 +89,6 @@ function SelectItem({
     >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
-  );
-}
-
-function SelectSeparator({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
-  return (
-    <SelectPrimitive.Separator
-      data-slot="select-separator"
-      className={clsx(
-        "bg-border pointer-events-none -mx-1 my-1 h-px",
-        className
-      )}
-      {...props}
-    />
   );
 }
 
@@ -145,59 +127,90 @@ function SelectScrollDownButton({
     </SelectPrimitive.ScrollDownButton>
   );
 }
-export {
-  SingleSelect,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-};
-type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
-  label?: string;
-  error?: string;
-  data?: { value: string; label: string }[];
-  placeholder?: string;
-};
 
-export default function Select({
-  label,
-  error,
-  data,
-  placeholder,
-}: SelectProps) {
+export interface SelectOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
+interface CustomSelectProps {
+  options: SelectOption[];
+  value?: string;
+  defaultValue?: string;
+  placeholder?: string;
+  onValueChange?: (value: string) => void;
+  disabled?: boolean;
+  className?: string;
+  triggerClassName?: string;
+  contentClassName?: string;
+}
+
+export function CommonSelect({
+  options,
+  value,
+  defaultValue,
+  placeholder = "Select an option",
+  onValueChange,
+  disabled = false,
+  triggerClassName,
+  contentClassName,
+}: CustomSelectProps) {
+  const [selectedValue, setSelectedValue] = React.useState(
+    value || defaultValue || ""
+  );
+
+  const handleValueChange = (newValue: string) => {
+    setSelectedValue(newValue);
+    onValueChange?.(newValue);
+  };
+
+  const selectedOption = options.find(
+    (option) => option.value === selectedValue
+  );
+
   return (
-    <div className="relative">
-      {label && (
-        <label
-          className="text-[14px] text-[#45474A] mb-[6px]"
-          data-slot="label"
-        >
-          {label}
-        </label>
-      )}
-      <SingleSelect>
-        <SelectTrigger error={!!error}>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {data && data.length > 0 ? (
-            data.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))
-          ) : (
-            <SelectItem value="" disabled>
-              No options
-            </SelectItem>
-          )}
-        </SelectContent>
-      </SingleSelect>
-      {error && <p className="text-[#E74247] text-[14px] absolute">{error}</p>}
-    </div>
+    <Select
+      value={selectedValue}
+      onValueChange={handleValueChange}
+      disabled={disabled}
+    >
+      <SelectTrigger
+        className={clsx(
+          "justify-between bg-white border border-gray-200 hover:border-gray-300 focus:border-gray-300 focus:ring-0 focus:ring-offset-0 outline-none",
+          triggerClassName
+        )}
+      >
+        <SelectValue placeholder={placeholder}>
+          {selectedOption?.label || placeholder}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent
+        className={clsx(
+          "bg-white border border-gray-200 shadow-lg rounded-md p-1 outline-none focus:outline-none",
+          contentClassName
+        )}
+      >
+        {options.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            disabled={option.disabled}
+            className={clsx(
+              "relative flex items-center justify-between px-3 py-2 text-sm cursor-pointer hover:bg-gray-50 focus:bg-gray-50 rounded-sm outline-none focus:outline-none data-[state=checked]:bg-transparent data-[highlighted]:outline-none",
+              selectedValue === option.value &&
+                "bg-rose-100 text-rose-800 hover:bg-rose-100 focus:bg-rose-100"
+            )}
+          >
+            <div className="flex items-center justify-between w-full">
+              <span>{option.label}</span>
+              {selectedValue === option.value && (
+                <span className="text-rose-600">✓</span>
+              )}
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
