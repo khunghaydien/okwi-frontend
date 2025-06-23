@@ -38,7 +38,7 @@ function SelectTrigger({
         data-size={size}
         className={clsx(
           className,
-          "text-[16px] text-[#1A1C1E] w-full border border-[#D9D9D9] rounded-lg px-3 h-[50px] outline-none text-left",
+          "text-[16px] text-[#1A1C1E] w-full border border-[#D9D9D9] rounded-lg px-3 h-10 outline-none text-left",
           error && "border-[#E74247]"
         )}
         {...props}
