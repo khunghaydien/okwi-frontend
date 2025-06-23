@@ -3,14 +3,13 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/ui/input";
-import Select from "@/components/ui/select";
 import BasicTableOne from "@/components/ui/tables/BasicTableOne";
-import Pagination from "@/components/ui/tables/Pagination";
 import TrashIcon from "@/public/icons/trash-icon";
 import EyeIcon from "@/public/icons/eye-icon";
 import PenIcon from "@/public/icons/pen-editing-icon";
 import { fetchUsers } from "@/services/user-services";
-
+import { CommonPagination } from "@/components/ui/tables/Pagination";
+import { CommonSelect } from "@/components/ui/select";
 const PAGE_SIZE = 6;
 
 const selectOptions = [
@@ -91,43 +90,13 @@ export default function BasicTables() {
       <div className="topSection container mx-auto px-3 py-6">
         <div className="flex gap-x-4 items-center">
           <div className="flex-1">Total: {fetchedUsers?.length ?? 0}</div>
-          {/* <div className="flex flex-3 items-center gap-x-3 ml-auto">
-            <div className="flex-1">
-              <Input
-                placeholder="Search name"
-                className="placeholder:text-sm"
-              />
-            </div>
-            <div className="flex-1">
-              <Select
-                label=""
-                placeholder="status"
-                data={selectOptions}
-                className="text-sm text-gray-400"
-              />
-            </div>
-
-            <div className="flex-1">
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => console.log("Create User")}
-                className="ml-4 mt-1"
-              >
-                + Add account
-              </Button>
-            </div>
-          </div> */}
           <div className="flex items-center gap-x-3 ml-auto w-auto">
-            <Input
-              placeholder="Search name"
-              className="placeholder:text-sm"
-            />
-            <Select
-              label=""
+            <Input placeholder="Search name" className="placeholder:text-sm" />
+            <CommonSelect
               placeholder="status"
-              data={selectOptions}
-              className="text-sm text-gray-400"
+              options={selectOptions}
+              triggerClassName="w-[200px]"
+              contentClassName="w-[200px]"
             />
             <Button
               variant="primary"
@@ -149,9 +118,10 @@ export default function BasicTables() {
           <div>
             <BasicTableOne data={paginatedData as any[]} columns={columns} />
             <div className="flex justify-end mt-4">
-              <Pagination
+              <CommonPagination
+                totalItems={fetchedUsers?.length ?? 0}
+                itemsPerPage={PAGE_SIZE}
                 currentPage={currentPage}
-                totalPages={Math.ceil((fetchedUsers?.length ?? 0) / PAGE_SIZE)}
                 onPageChange={setCurrentPage}
               />
             </div>
