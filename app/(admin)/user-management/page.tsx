@@ -10,33 +10,45 @@ import PenIcon from "@/public/icons/pen-editing-icon";
 import { fetchUsers } from "@/services/user-services";
 import { CommonPagination } from "@/components/ui/tables/Pagination";
 import { CommonSelect } from "@/components/ui/select";
-const PAGE_SIZE = 6;
+import { useDebounce } from "@/hooks/useDebounce";
+import UserModal from "./userModal";
+
+const PAGE_SIZE = 10;
 
 const selectOptions = [
-  { label: "All", value: "nn" },
-  { label: "Admin", value: "admin" },
-  { label: "Editor", value: "editor" },
-  { label: "Viewer", value: "viewer" },
+  { label: "All", value: "" },
+  { label: "Active", value: 1 },
+  { label: "Inactive", value: 0 },
 ];
 
 export default function BasicTables() {
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [search, setSearch] = React.useState("");
+  const [status, setStatus] = React.useState("all");
+  const [openModal, setOpenModal] = React.useState(false);
+
+  const debouncedSearch = useDebounce(search, 400);
+
+  // Fetch paginated users from API
   const {
-    data: fetchedUsers,
+    data,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["fetchedUsers"],
-    queryFn: fetchUsers,
+    queryKey: ["fetchedUsers", currentPage, PAGE_SIZE, debouncedSearch, status],
+    queryFn: () =>
+      fetchUsers({
+        page: currentPage,
+        limit: PAGE_SIZE,
+        search: debouncedSearch,
+        status: status === "all" ? undefined : Number(status),
+      }),
+    keepPreviousData: true,
   });
 
-  const [currentPage, setCurrentPage] = React.useState(1);
-
-  // Paginate data
-  const paginatedData = React.useMemo(() => {
-    if (!fetchedUsers) return [];
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return fetchedUsers.slice(start, start + PAGE_SIZE);
-  }, [fetchedUsers, currentPage]);
+  const users = data?.data || [];
+  const pagination = data?.pagination || {};
+  const totalItems = pagination.totalItems || 0;
 
   // Table columns
   const columns = [
@@ -89,19 +101,36 @@ export default function BasicTables() {
       </h1>
       <div className="topSection container mx-auto px-3 py-6">
         <div className="flex gap-x-4 items-center">
-          <div className="flex-1">Total: {fetchedUsers?.length ?? 0}</div>
+          <div className="flex-1">Total: {totalItems}</div>
           <div className="flex items-center gap-x-3 ml-auto w-auto">
-            <Input placeholder="Search name" className="placeholder:text-sm" />
+            <Input
+              placeholder="Search name"
+              className="placeholder:text-sm"
+              value={search}
+              onChange={e => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
             <CommonSelect
               placeholder="status"
-              options={selectOptions}
+              options={[
+                { label: "All", value: "all" },
+                { label: "Active", value: "1" },
+                { label: "Inactive", value: "0" },
+              ]}
               triggerClassName="w-[200px]"
               contentClassName="w-[200px]"
+              value={status}
+              onValueChange={val => {
+                setStatus(val);
+                setCurrentPage(1);
+              }}
             />
             <Button
               variant="primary"
               size="md"
-              onClick={() => console.log("Create User")}
+              onClick={() => setOpenModal(true)}
               className="ml-4 mt-1"
             >
               + Add account
@@ -116,18 +145,27 @@ export default function BasicTables() {
           </div>
         ) : (
           <div>
-            <BasicTableOne data={paginatedData as any[]} columns={columns} />
+            <BasicTableOne data={users as any[]} columns={columns} />
             <div className="flex justify-end mt-4">
               <CommonPagination
-                totalItems={fetchedUsers?.length ?? 0}
-                itemsPerPage={PAGE_SIZE}
-                currentPage={currentPage}
+                totalItems={pagination.totalItems}
+                itemsPerPage={pagination.pageSize}
+                currentPage={pagination.currentPage}
                 onPageChange={setCurrentPage}
               />
             </div>
           </div>
         )}
       </div>
+      <UserModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        onSubmit={(data) => {
+          // handle create user logic here
+          setOpenModal(false);
+        }}
+        mode="add"
+      />
     </div>
   );
 }

@@ -172,7 +172,7 @@ const AppSidebar: React.FC = () => {
 
     return (
         <aside
-            className="h-screen w-[236px] text-white py-6"
+            className="w-[236px] text-white py-6"
             style={{
                 background: "linear-gradient(178.13deg, #E84246 0.83%, #D14760 99.44%)",
             }}>

@@ -1,11 +1,18 @@
 import axiosInstance from "./api-services";
 
-export const fetchUsers = async () => {
+export const fetchUsers = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  status,
+}: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: number;
+} = {}) => {
   try {
-    // const response = await axiosInstance.get('/pages');
-    // console.log('Supported pages list:', response.data);
-    // return response.data;
-    return [
+    const allUsers = [
       {
         user_name: "Alice Nguyen",
         email: "alice@example.com",
@@ -95,8 +102,63 @@ export const fetchUsers = async () => {
         create_date: "2023-09-12",
         status: "Active",
         action: "",
-      }
+      },
+      {
+        user_name: "Kevin Phan",
+        email: "kevin.phan@example.com",
+        phone: "0902345678",
+        role: "Editor",
+        create_date: "2023-08-10",
+        status: "Inactive",
+        action: "",
+      },
+      {
+        user_name: "Linda Ngo",
+        email: "linda.ngo@example.com",
+        phone: "0913456789",
+        role: "Viewer",
+        create_date: "2023-07-15",
+        status: "Active",
+        action: "",
+      },
     ];
+
+    // Filter by name
+    let filtered = allUsers;
+    if (search) {
+      filtered = filtered.filter((user) =>
+        user.user_name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    // Filter by status
+    if (status !== undefined) {
+      filtered = filtered.filter(
+        (user) =>
+          user.status.toLowerCase() === (status === 1 ? "active" : "inactive")
+      );
+    }
+
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / limit);
+    const start = (page - 1) * limit;
+    const pagedData = filtered.slice(start, start + limit);
+
+    return {
+      data: pagedData,
+      pagination: {
+        totalItems,
+        currentPage: page,
+        pageSize: limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+      meta: {
+        status: "success",
+        message: "User list retrieved successfully",
+        timestamp: new Date().toISOString(),
+      },
+    };
   } catch (error) {
     console.error("Failed to fetch supported pages:", error);
     return [];

@@ -19,7 +19,7 @@ export default function ChangePassword() {
         .string()
         .nullable()
         .required("Confirm password is required")
-        .oneOf([yup.ref("new_password"), null], "Password do not match"),
+        .oneOf([yup.ref("new_password")], "Password do not match"),
     }),
     onSubmit: (values) => {
       setTimeout(() => {
